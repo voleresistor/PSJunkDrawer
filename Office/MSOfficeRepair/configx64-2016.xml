@@ -1,0 +1,15 @@
+<!-- Configuration Product="ProPlus">
+    <COMPANYNAME Value="DXP Enterprises" />
+    <Display Level="Basic" CompletionNotice="No" SuppressModal="Yes" NoCancel="Yes" AcceptEULA="Yes" />
+    <DistributionPoint Location="\\housccm02\DP\Microsoft\Office 2010\x86" />
+    <Logging Type="Standard" Path="%temp%" Template="MSOffice2010(*).log" />
+    <MinOSRequirement WindowsBuild="7600" />
+    <Setting Id="SETUP_REBOOT" Value="Never" />
+</Configuration> -->
+
+<Configuration Product="ProPlus">
+    <COMPANYNAME Value="DXP Enterprises" />
+    <Display Level="Basic" CompletionNotice="No" SuppressModal="Yes" NoCancel="Yes" AcceptEULA="Yes" />
+    <Logging Type="Standard" Path="%temp%" Template="MSOfficex64-2016-Repair(*).log" />
+    <Setting Id="SETUP_REBOOT" Value="Never" />
+</Configuration>
