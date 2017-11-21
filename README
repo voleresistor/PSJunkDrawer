@@ -12,3 +12,6 @@ TODO:
 Changes:
     11/20/2017
         Initial creation of this repository with all of its faults intact
+    11/21/2017
+        Completed initial cleanup of AD scripts.
+        Increment version to 0.2.0
