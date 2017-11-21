@@ -1,0 +1,7 @@
+Active Directory Scripts
+    Various scripts and functions that have some potential usefulness in managing AD.
+
+Reviewed/Edited:
+    - Get-AuditComputerCount
+    - Start-GpoComparison
+    - Get-ComputerDomain
