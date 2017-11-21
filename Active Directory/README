@@ -5,3 +5,5 @@ Reviewed/Edited:
     - Get-AuditComputerCount
     - Start-GpoComparison
     - Get-ComputerDomain
+    - Get-AdSites
+    - Get-AdForestObject
