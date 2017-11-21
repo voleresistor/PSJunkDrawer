@@ -1,4 +1,4 @@
-﻿function Start-GpoComparison
+﻿function Get-GpoComparison
 {
     <#
     .SYNOPSIS
@@ -25,6 +25,8 @@
         [Parameter(Mandatory=$true, Position=2)]
         [string]$CompareDC
     )
+
+    . Get-ComputerDomain.ps1
 
     # Get FQDNs for both computers and gather policies for source
     $sdc = Get-ComputerDomain -ComputerName $SourceDC

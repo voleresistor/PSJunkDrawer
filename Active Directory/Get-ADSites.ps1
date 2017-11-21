@@ -9,6 +9,9 @@
     
     .PARAMETER DomainName
     Name of the forest domain to gather data from. If not specified, the current forest is used.
+
+    .PARAMETER Credential
+    A PSCredential object containing to be used to logon to the remote server or domain.
     
     .EXAMPLE
     Get-AdSites -DomainName example.com
@@ -26,11 +29,25 @@
     [cmdletbinding()]            
     param
     (
-        [Parameter(Mandatory=$false)]
-        [string]$DomainName
-    )            
+        [Parameter(Mandatory=$false, Position=1)]
+        [string]$DomainName,
 
-    $Sites = (Get-ADForestObject $DomainName).Sites           
+        [Parameter(Mandatory=$false, Position=2)]
+        [System.Management.Automation.PsCredential]$Credential
+    )
+
+    # A script dependency
+    . Get-AdForestObject.ps1
+
+    if ($DomainName -and $Credential)
+    {
+        $Sites = (Get-ADForestObject -ForestName $DomainName -Credential $Credential).Sites
+    }
+    else
+    {
+        $Sites = (Get-ADForestObject $DomainName).Sites
+    }
+               
     $obj = @() 
     foreach ($Site in $Sites)
     {            

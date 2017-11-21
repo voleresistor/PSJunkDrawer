@@ -11,7 +11,7 @@ function Get-ADForestObject
     FQDN of the target forest. If not specified, the current forest is used.
     
     .PARAMETER Credential
-    A PSCredential object containing a username and hashed password.
+    A PSCredential object containing to be used to logon to the remote server or domain.
     
     .EXAMPLE
     Get-ADForestObject
@@ -26,7 +26,7 @@ function Get-ADForestObject
         [Parameter(Mandatory=$false, Position=1)]
         [string]$ForestName,
 
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$false, Position=2)]
         [System.Management.Automation.PsCredential]$Credential
     )
 
