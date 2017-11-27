@@ -14,7 +14,7 @@ Changes:
 
 param (
     [string]$ScopeID,
-    [array]$DhcpServers = @("hou-dc-03.dxpe.corp", "hou-dc-04.dxpe.corp", "omwdhcp02.dxpe.com", "houdhcp02.dxpe.com")
+    [array]$DhcpServers = @()
 )
 
 # ================================

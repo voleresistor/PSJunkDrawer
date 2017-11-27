@@ -5,8 +5,8 @@
     [switch]$CorpServers,
     [switch]$PingGateways,
     [switch]$CheckLeases,
-    [array]$DhcpServerListCom = @("omwdhcp02.dxpe.com", "houdhcp02.dxpe.com"),
-    [array]$DhcpServerListCorp = @("hou-dc-03.dxpe.corp", "hou-dc-04.dxpe.corp")
+    [array]$DhcpServerListCom = @(),
+    [array]$DhcpServerListCorp = @()
 )
 
 # ************************************************
