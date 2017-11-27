@@ -3,18 +3,18 @@ param
 (
 )
 
-# Store build numbers as variables
+# Build number shenanigans
 [int]$Build1607 = 10586
 [int]$Build1703 = 14393
 [int]$Build1709 = 16299
-
-# Get this number as an int for easy comparison with above build variables
 [int]$BuildNumber = (Get-WmiObject -Class Win32_Operatingsystem).BuildNumber
 
 # Not changing our behavior based on build numbers right now, but the possibility exists
 if ($BuildNumber) # -lt $Build1709
 {
     $appXPackages = Get-AppxProvisionedPackage -Online
+
+    # Add/remove names from this list as necessary
     $keepApps = @(
         '*Microsoft.MicrosoftStickyNotes*',
         '*Microsoft.WindowsAlarms*',

@@ -15,3 +15,9 @@ Changes:
     11/21/2017
         Completed initial cleanup of AD scripts.
         Increment version to 0.2.0
+    11/27/2017
+        Create PSReadData folder in Misc
+            Create data.psd1 file in this folder
+            This file is an example file for reading data from a psd1 file into a PS script
+        Delete unnecessary scripts from Applications folder
+            Slightly modify Remove-AppxPackagesPre to be more concise
