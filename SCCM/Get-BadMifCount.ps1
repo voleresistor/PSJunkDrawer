@@ -6,7 +6,7 @@
 
 param
 (
-    [string]$MifBox = '\\housccm03.dxpe.com\SMS_HOU\inboxes\auth\dataldr.box\BADMIFS\ErrorCode_4',
+    [string]$SiteServer,
     [string]$CsvOutFile = "c:\temp\$(Get-Date -uformat "%m%d")-badmifs.csv"
 )
 
@@ -31,13 +31,14 @@ function Get-MifIndex
 }
 
 # Some constant?
-$NameInd = 0
 $CountInd = 1
 $LatestInd = 2
 $EarliestInd = 3
 
 # Store data in an array of arrays before transferring it to file
 $MifCounts = @()
+$SiteCodeObjects = Get-WmiObject -Namespace "root\SMS" -Class SMS_ProviderLocation -ComputerName $SiteServer -ErrorAction Stop
+$MifBox = "\\$SiteServer\SMS_$($SiteCodeObjects.SiteCode)\inboxes\auth\dataldr.box\BADMIFS\ErrorCode_4"
 
 foreach ($file in (Get-ChildItem -Path $MifBox -Filter *.mif))
 {
