@@ -1,22 +1,20 @@
 $password = "\`d.T.~Vb/{24737E7D-4206-4424-A2B0-E0BE4BAE0AFD}\`d.T.~Vb/"
 $userName = "\`d.T.~Vb/{9212B15A-4A52-4E55-B9AC-DB1F3F11FEDF}\`d.T.~Vb/"
-$siteServer = "\`d.T.~Vb/{61DFFDD1-F507-4125-813F-BA8C70A77BA1}\`d.T.~Vb/"
-$execFrequency = \`d.T.~Vb/{F05EEB42-5483-4128-872C-C408757EE342}\`d.T.~Vb/
-$secondEmail = \`d.T.~Vb/{E199B715-95D1-4689-BD07-F17FF803CDB8}\`d.T.~Vb/
-$deny = \`d.T.~Vb/{A977F4DC-9E7C-47C7-BF38-7FA1F9F864C7}\`d.T.~Vb/
+$siteServer = "housccm03.dxpe.com"
+$execFrequency = 5
+$secondEmail = 3600
+$deny = 7200
 
 $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
 $mycreds = New-Object System.Management.Automation.PSCredential ($userName, $secpasswd)
-
+$appAprGUID=@()
+$SiteCode = (gwmi -ComputerName $SiteServer -Namespace root\SMS -Class "SMS_ProviderLocation").SiteCode
 $APPAPR = Invoke-Command -ComputerName $siteServer -Credential $mycreds -ScriptBlock {
-
-    &"$env:windir\syswow64\windowspowershell\v1.0\powershell.exe" -noninteractive -noprofile {
-        import-module ($Env:SMS_ADMIN_UI_PATH.Substring(0,$Env:SMS_ADMIN_UI_PATH.Length-5) + '\ConfigurationManager.psd1')
-        $PSD = Get-PSDrive -PSProvider CMSite
-        CD "$($PSD):"
-        Get-CMApprovalRequest -RequestGuid "\`d.T.~Ed/{8C249CFB-02B0-4C2E-9EDC-36B304AE17A6}.App Request GUID\`d.T.~Ed/"
-    }
-}
+    import-module ($Env:SMS_ADMIN_UI_PATH.Substring(0,$Env:SMS_ADMIN_UI_PATH.Length-5) + '\ConfigurationManager.psd1')
+    New-PSDrive -Name $($args[0]) -PSProvider CMSite -Root $($args[1]) | Out-Null
+    Set-Location "$($args[0]):\"
+    Get-CMApprovalRequest -RequestGuid "1FB4692B-CEA9-4C05-917D-C7FCCC5D6968" #Filled by data from previous ruinbook steps
+} -ArgumentList $SiteCode,$siteServer
 
 $appName = $APPAPR.Application
 
