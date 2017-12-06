@@ -1,4 +1,5 @@
-﻿param(
+﻿param
+(
     [ValidateSet('DiskSpace','Replication','AddPrinter','DeletePrinter','ChangePrinter')]
     [string]$Action,
 
@@ -25,18 +26,22 @@
 #}
 
 # Collect message data and edit email subject and body based on alert subject
-switch ($Action){
-    "DiskSpace" {
+switch ($Action)
+{
+    "DiskSpace"
+    {
         $message = (Get-WinEvent -FilterHashtable @{LogName="Microsoft-Windows-Diagnosis-PLA/Operational"; ID=2031} | Select-Object -First 1)
         $body = "A disk on $env:COMPUTERNAME has fallen below the minimum free space threshold. The message was:<br><br><i>$($message.Message)</i>"
         $subject = "Low Disk Space"
     }
-    "Replication" {
+    "Replication"
+    {
         $message = (Get-WinEvent -FilterHashtable @{LogName="DFS Replication"; ID=5008} | Select-Object -First 1)
         $body = "A failure has occurred that resulted in a full halt in replication with a partner of $env:COMPUTERNAME. The message was:<br><br><i>$($message.Message)</i>"
         $subject = "Replication Failure"
     }
-    "AddPrinter" {
+    "AddPrinter"
+    {
         $MailTo += 'vu.le@dxpe.com'
         Import-Module ActiveDirectory
 
@@ -50,7 +55,8 @@ switch ($Action){
 
         Remove-Module ActiveDirectory
     }
-    "DeletePrinter" {
+    "DeletePrinter"
+    {
         $MailTo += 'vu.le@dxpe.com'
         Import-Module ActiveDirectory
 
@@ -64,7 +70,8 @@ switch ($Action){
 
         Remove-Module ActiveDirectory
     }
-    "ChangePrinter" {
+    "ChangePrinter"
+    {
         $MailTo += 'vu.le@dxpe.com'
         Import-Module ActiveDirectory
 
@@ -78,7 +85,8 @@ switch ($Action){
 
         Remove-Module ActiveDirectory
     }
-    default {
+    default
+    {
         $body = "An event that matches a configured alert on $env:COMPUTERNAME has ocurred, but due to a misconfiguration in the alert, the event could not be determined."
         $subject = "Unknown Event"
     }
@@ -90,6 +98,7 @@ $anonPassword = ConvertTo-SecureString -String 'anonymous' -AsPlainText -Force
 $anonCredential = New-Object System.Management.Automation.PSCredential($anonUsername,$anonPassword)
 
 # Send message using anonymous credentials
-foreach ($address in $MailTo){
+foreach ($address in $MailTo)
+{
     Send-MailMessage -To $address -From $MailFrom -Subject $subject -Body $body -SmtpServer $SmtpServer -Priority $Priority -BodyAsHtml -Credential $anonCredential
 }
