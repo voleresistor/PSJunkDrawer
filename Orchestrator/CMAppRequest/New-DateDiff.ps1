@@ -65,7 +65,7 @@ function New-DateDiff
         }
     }
     elseif ($currentState -eq 2){
-        if (($currentTime -lt $today.AddMinutes(-$deny))){
+        if (($currentTime -lt $today) -and ($currentTime -gt $today.AddMinutes(-$execFrequency))){
             $action = "CancelEmail"
         }
     }
