@@ -2,7 +2,8 @@ param
 (
     [string]$ComputerName = '.', # Only use this for testing. Script not equipped to handle remote BIOS upgrade
     [string]$SourcePath = '\\housccm04.dxpe.com\BIOSUpdate\',
-    [string]$DestPath = 'C:\temp\BIOSUpdate'
+    [string]$DestPath = 'C:\temp\BIOSUpdate',
+    [switch]$ReallyUpdate
 )
 
 # *******************************************************
@@ -114,6 +115,7 @@ else
 if (!($BIOSVersion -eq $Latest))
 {
     Write-Host "BIOS version $BIOSVersion not equal to latest $Latest!`r`nBegin update process!" -ForegroundColor Red
+    exit 0
 
     # Create path for BIOS update files
     if (Test-Path -Path $DestPath)
