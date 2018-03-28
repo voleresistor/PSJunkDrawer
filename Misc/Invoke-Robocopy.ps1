@@ -143,7 +143,13 @@ function Invoke-Robocopy
         $List,
         
         [Switch]
-        $Create
+        $Create,
+
+        [string]
+        $Copy,
+
+        [string]
+        $DCopy
     )
     
     #Define null variables
@@ -153,6 +159,8 @@ function Invoke-Robocopy
     $DoExclude = $null
     $DoMultithread = $null
     $DoCopyAll = $null
+    $DoCopy = $null
+    $DoDCopy = $null
     $DoRunHour = $null
     $DoPerFile = $null
     $DoCreate = $null
@@ -163,6 +171,18 @@ function Invoke-Robocopy
     
     #**************************
     # Set various switches here
+
+    # Custom directory copy commands
+    if ($DCopy)
+    {
+        $DoDCopy = "/DCOPY:$DCopy"
+    }
+
+    # Custom copy commands
+    if ($Copy)
+    {
+        $DoCopy = "/COPY:$Copy"
+    }
     
     # Recurse, keeping empty directories
     if ($Recurse)
@@ -248,6 +268,8 @@ function Invoke-Robocopy
     $RoboCopyArgs += '$DoExclude '
     $RoboCopyArgs += '$DoMultithread '
     $RoboCopyArgs += '$DoCopyAll '
+    $RoboCopyArgs += '$DoCopy '
+    $RoboCopyArgs += '$DoDCopy '
     $RoboCopyArgs += '$DoRunHour '
     $RoboCopyArgs += '$DoPerFile '
     $RoboCopyArgs += '$DoCreate '

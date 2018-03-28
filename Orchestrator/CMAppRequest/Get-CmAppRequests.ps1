@@ -22,10 +22,10 @@ function Get-CmAppRequests
     #>
     param
     (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
         $Password,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
         $UserName,
 
         [Parameter(Mandatory=$true)]
@@ -35,10 +35,20 @@ function Get-CmAppRequests
         $MaxAgeHours = 73
     )
 
-    $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-    $mycreds = New-Object System.Management.Automation.PSCredential ($userName, $secpasswd)
-    $SiteCode = (Get-WmiObject -ComputerName $SiteServer -Namespace 'root\SMS' -Class "SMS_ProviderLocation" -Credential $mycreds).SiteCode
-    $requests = Get-WmiObject -Class 'SMS_UserApplicationRequest' -Namespace "root\sms\site_$SiteCode" -ComputerName $SiteServer -Credential $mycreds #| Where-Object {$_.LastModifiedDate -gt $((Get-Date).AddHours(-73))}
+    
+
+    if (!$Password -and !$UserName)
+    {
+        $SiteCode = (Get-WmiObject -ComputerName $SiteServer -Namespace 'root\SMS' -Class "SMS_ProviderLocation").SiteCode
+        $requests = Get-WmiObject -Class 'SMS_UserApplicationRequest' -Namespace "root\sms\site_$SiteCode" -ComputerName $SiteServer
+    }
+    else
+    {
+        $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+        $mycreds = New-Object System.Management.Automation.PSCredential ($userName, $secpasswd)
+        $SiteCode = (Get-WmiObject -ComputerName $SiteServer -Namespace 'root\SMS' -Class "SMS_ProviderLocation" -Credential $mycreds).SiteCode
+        $requests = Get-WmiObject -Class 'SMS_UserApplicationRequest' -Namespace "root\sms\site_$SiteCode" -ComputerName $SiteServer -Credential $mycreds #| Where-Object {$_.LastModifiedDate -gt $((Get-Date).AddHours(-73))}
+    }
     <#$requests = invoke-command -ComputerName $SiteServer -Credential $mycreds -ScriptBlock {
         Get-WmiObject -Class 'SMS_UserApplicationRequest' -Namespace "root\sms\site_$($args[0])" -ComputerName $($args[1])
     } -ArgumentList $SiteCode,$SiteServer#>
@@ -47,7 +57,7 @@ function Get-CmAppRequests
     {
         $date,$null = $r.LastModifiedDate -split ('\.')
         $date = [datetime]::ParseExact($date, 'yyyyMMddHHmmss', $null)
-        if ($date -gt $((Get-Date).AddHours(-$MaxAgeHours)))
+        if ($date -gt $(([DateTime]::UtcNow).AddHours(-$MaxAgeHours)))
         {
             $appAprGUID += $r.RequestGuid
         }
