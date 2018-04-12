@@ -1,0 +1,9 @@
+ShareName,OldPath,TargetServer,TargetDrive,ReplServer,ReplDrive
+North Texas Region,\\10.128.18.248\departments\North Texas Region,houdfs03.dxpe.com,G,omadfs01.dxpe.com,D
+SI Odessa Auto,\\10.128.18.248\departments\SI Odessa Auto,houdfs03.dxpe.com,G,omadfs01.dxpe.com,D
+Standard_Register_Team,\\10.128.18.248\departments\Standard_Register_Team,houdfs03.dxpe.com,G,omadfs01.dxpe.com,D
+SCS-Springfield-IOH,\\10.128.18.248\departments\SCS-Springfield-IOH,houdfs03.dxpe.com,G,omadfs01.dxpe.com,D
+Little Rock PI Service Center,\\10.128.18.248\departments\Little Rock PI Service Center,houdfs03.dxpe.com,G,omadfs01.dxpe.com,D
+Gaffney-Kroese,\\10.128.18.248\departments\Gaffney-Kroese,houdfs03.dxpe.com,G,omadfs01.dxpe.com,D
+BDCROA,\\10.128.18.248\departments\BDCROA,houdfs03.dxpe.com,G,omadfs01.dxpe.com,D
+XA,\\10.128.18.248\departments\XA,houdfs03.dxpe.com,G,omadfs01.dxpe.com,D
