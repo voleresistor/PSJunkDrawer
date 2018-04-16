@@ -4,21 +4,22 @@ param
     [string]$InputCsv,
 
     [Parameter(Mandatory=$false)]
-    [string]$LogFile = "C:\temp\Copy-Shares.log"
+    [string]$LogPath = "C:\temp\Copy-Netapp"
 )
 
-#Initialize log
-if (!(Test-Path -Path $LogFile))
+# Initialize log path
+if (!(Test-Path -Path $LogPath))
 {
-    Add-Content -Value "$(Get-date -UFormat '%m/%d/%Y - %H:%M:%S')> Begin copy job" -Path $LogFile
+    New-Item -Path $LogPath -Force -ItemType Directory | Out-Null
 }
 
 #Import CSV file
-Add-Content -Value "$(Get-date -UFormat '%m/%d/%Y - %H:%M:%S')> Importing CSV file: $InputCsv" -Path $LogFile
 $CsvFile = Import-Csv -Path $InputCsv -Delimiter ','
 
 foreach ($entry in $CsvFile)
 {
+    #region ToBeRemoved
+    <#
     Add-Content -Value "$(Get-date -UFormat '%m/%d/%Y - %H:%M:%S')> Source share: $($entry.OldPath)" -Path $LogFile
     #Open PSRemote session to TargetServer and ReplServer
     try
@@ -104,23 +105,8 @@ foreach ($entry in $CsvFile)
         Add-Content -Value "$(Get-date -UFormat '%m/%d/%Y - %H:%M:%S')> Failed setting ACL" -Path $LogFile
         Add-Content -Value "$(Get-date -UFormat '%m/%d/%Y - %H:%M:%S')> $($_.Exception.Message)" -Path $LogFile
         continue
-    }
+    }#>
+    #endregion
 
-    #Create SMB share on TargetServer and ReplServer
-
-    #Copy data from OldPath to TargetServer share
-
-    #Create DFS referral pointing to TargetServer and ReplServer
-
-    #Disable referral to ReplServer
-
-    #Create replication group between TargetServer and ReplServer
-
-    #UpdateFromAD on TargetServer and ReplServer
-
-    #Close Remote session links
-    Remove-PSSession -Session $TargetSess
-    Remove-PSSession -Session $ReplSess
-
-    Clear-Variable SourceAces,SourceAcl,TargetSess,ReplSess,owner
+    Start-Process -FilePath "$env:windir\System32\robocopy.exe" -ArgumentList "`"$($entry.SourcePath)`" `"$($entry.DestPath)`" /E /XO /COPY:DATSO /DCOPY:DAT /LOG+:`"$LogPath\$($entry.ShareName).log`"" -Wait -NoNewWindow
 }
