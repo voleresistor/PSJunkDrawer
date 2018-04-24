@@ -68,12 +68,12 @@ function Write-Log
     try
     {
         Add-Content -Value $LogMessage -Path $LogPath -ErrorAction Stop
-        return 0
+        Start-Sleep -Milliseconds 200
     }
     catch
     {
         Write-Verbose -Message $_.Exception.Message
-        return 1
+        Start-Sleep -Milliseconds 200
     }
 }
 
