@@ -72,82 +72,89 @@ foreach ($entry in $CsvFile)
     Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message ' '
     Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Update DFS folder targets for share: $($entry.ShareName)"
 
-    # Verify that DFS folder exists
-    if (!(Get-DfsnFolder -Path $($entry.DFSPath)))
+    if ($($entry.DFSPath))
     {
-        Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Couldn't find $($entry.DFSPath)" -Type 'Warning'
-        continue
+        # Verify that DFS folder exists
+        if (!(Get-DfsnFolder -Path $($entry.DFSPath)))
+        {
+            Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Couldn't find $($entry.DFSPath)" -Type 'Warning'
+            continue
+        }
+        else
+        {
+            Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Found $($entry.DFSPath)"
+        }
+    
+        # Create new targets
+        if ($Action -eq 'Create')
+        {
+            # Define new targets
+            $PrimaryTarget = "\\" + $($entry.PrimaryServer) + "\" + $($entry.ShareName)
+            $ReplTarget = "\\" + $($entry.ReplServer) + "\" + $($entry.ShareName)
+        
+            try
+            {
+                Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Adding $PrimaryTarget"
+                New-DfsnFolderTarget -Path $($entry.DFSPath) -TargetPath $PrimaryTarget -State Offline
+            }
+            catch
+            {
+                Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Failed to add $PrimaryTarget" -Type 'Error'
+                continue
+            }
+        
+            try
+            {
+                Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Adding $ReplTarget"
+                New-DfsnFolderTarget -Path $($entry.DFSPath) -TargetPath $ReplTarget -State Offline
+            }
+            catch
+            {
+                Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Failed to add $ReplTarget" -Type 'Error'
+                continue
+            }
+        }
+    
+        # Enable targets
+        if ($Action -eq 'Enable')
+        {
+            $FolderTargets = Get-DfsnFolderTarget -Path $($entry.DFSPath)
+        
+            # Toggle targets
+            foreach ($t in $FolderTargets)
+            {
+                Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Found $($t.TargetPath) with state $($t.State)"
+            
+                if ($($t.TargetPath) -like '\\10.128.18.248*')
+                {
+                    try
+                    {
+                        Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Disabling $($t.TargetPath) in $($entry.DFSPath)"
+                        Set-DfsnFolderTarget -Path $($entry.DFSPath) -TargetPath $($t.TargetPath) -State 'Offline'
+                    }
+                    catch
+                    {
+                        Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Failed to disable $($t.TargetPath) in $($entry.DFSPath)" -Type 'Error'
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Enabling $($t.TargetPath) in $($entry.DFSPath)"
+                        Set-DfsnFolderTarget -Path $($entry.DFSPath) -TargetPath $($t.TargetPath) -State 'Online'
+                    }
+                    catch
+                    {
+                        Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Failed to enable $($t.TargetPath) in $($entry.DFSPath)" -Type 'Error'
+                    }
+                }
+            }
+        }
     }
     else
     {
-        Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Found $($entry.DFSPath)"
-    }
-
-    # Create new targets
-    if ($Action -eq 'Create')
-    {
-        # Define new targets
-        $PrimaryTarget = "\\" + $($entry.PrimaryServer) + "\" + $($entry.ShareName)
-        $ReplTarget = "\\" + $($entry.ReplServer) + "\" + $($entry.ShareName)
-
-        try
-        {
-            Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Adding $PrimaryTarget"
-            New-DfsnFolderTarget -Path $($entry.DFSPath) -TargetPath $PrimaryTarget -State Offline
-        }
-        catch
-        {
-            Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Failed to add $PrimaryTarget" -Type 'Error'
-            continue
-        }
-
-        try
-        {
-            Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Adding $ReplTarget"
-            New-DfsnFolderTarget -Path $($entry.DFSPath) -TargetPath $ReplTarget -State Offline
-        }
-        catch
-        {
-            Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Failed to add $ReplTarget" -Type 'Error'
-            continue
-        }
-    }
-
-    # Enable targets
-    if ($Action -eq 'Enable')
-    {
-        $FolderTargets = Get-DfsnFolderTarget -Path $($entry.DFSPath)
-
-        # Toggle targets
-        foreach ($t in $FolderTargets)
-        {
-            Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Found $($t.TargetPath) with state $($t.State)"
-
-            if ($($t.TargetPath) -like '\\10.128.18.248*')
-            {
-                try
-                {
-                    Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Disabling $($t.TargetPath) in $($entry.DFSPath)"
-                    Set-DfsnFolderTarget -Path $($entry.DFSPath) -TargetPath $($t.TargetPath) -State 'Offline'
-                }
-                catch
-                {
-                    Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Failed to disable $($t.TargetPath) in $($entry.DFSPath)" -Type 'Error'
-                }
-            }
-            else
-            {
-                try
-                {
-                    Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Enabling $($t.TargetPath) in $($entry.DFSPath)"
-                    Set-DfsnFolderTarget -Path $($entry.DFSPath) -TargetPath $($t.TargetPath) -State 'Online'
-                }
-                catch
-                {
-                    Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "Failed to enable $($t.TargetPath) in $($entry.DFSPath)" -Type 'Error'
-                }
-            }
-        }
+        Write-Log -LogPath $LogPath -Component 'NetApp Migration' -File 'Set-NetAppMigrationTargets.ps1' -Message "No DFSPath entry. Skipping $($entry.ShareName)"
     }
 }
 

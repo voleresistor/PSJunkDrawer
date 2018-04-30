@@ -40,5 +40,5 @@ foreach ($t in $Namespaces)
     Add-Content -Value $((Get-Content -Path $TemplateFile -First 4).Replace('Test', $NSName)) -Path "C:\temp\rootreplace\$FileName.xml"
     Add-Content -Value ($Template[4..$($Template.Count)]) -Path "C:\temp\rootreplace\$FileName.xml"
 
-    Start-Process -FilePath 'dfsutil.exe' -ArgumentList "/root:$($t.Path) /Import:C:\temp\rootreplace\$FileName.xml"
+    Start-Process -FilePath 'dfsutil.exe' -ArgumentList "/root:$($t.Path) /Import:C:\temp\rootreplace\$FileName.xml /Set" -NoNewWindow -Wait
 }

@@ -105,7 +105,10 @@ foreach ($entry in $CsvFile)
     $primaryAcl = Get-Acl -Path $($primaryPath + "\" + $($entry.ShareName))
 
     # Create owner object
-    $owner = New-Object System.Security.Principal.NTAccount($domain, $uname)# | Out-Null (Derp)
+    if ($uname -and $domain)
+    {
+        $owner = New-Object System.Security.Principal.NTAccount($domain, $uname)# | Out-Null (Derp)
+    }
 
     # Set owner
     if ($owner)
@@ -141,7 +144,7 @@ foreach ($entry in $CsvFile)
         $newShare = {
             if (!(Get-SmbShare -Name $args[0]))
             {
-                New-SmbShare -FullAccess Everyone -Name $args[0] -Path $args[1] -Description $args[2]
+                New-SmbShare -FullAccess Everyone -Name $args[0] -Path $args[1] -Description $args[2] -CachingMode BranchCache -FolderEnumerationMode AccessBased
                 return $true
             }
             else
