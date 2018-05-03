@@ -102,6 +102,20 @@ foreach ($entry in $CsvFile)
         Write-Log -LogPath $LogPath -Component 'New-ReplicatedMigrationFolder' -File 'New-ReplicatedMigrationFolder.ps1' -Message "Couldn't add replication partner: $($entry.ReplServer)" -Type 'Error'
         continue
     }
+
+    # Set replication schedule
+    Write-Log -LogPath $LogPath -Component 'New-ReplicatedMigrationFolder' -File 'New-ReplicatedMigrationFolder.ps1' -Message "Setting replication schedule on: $($entry.DFSRGroupName)"
+
+    try
+    {
+        Set-DfsrGroupSchedule -GroupName $($entry.DFSRGroupName) -UseUTC $true -Day 1,2,3,4,5 `
+            -BandwidthDetail 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6666666666666666666666666666666666666666666666666666'
+    }
+    catch
+    {
+        Write-Log -LogPath $LogPath -Component 'New-ReplicatedMigrationFolder' -File 'New-ReplicatedMigrationFolder.ps1' -Message "Couldn't set replication schedule: $($entry.DFSRGroupName)" -Type 'Error'
+        continue
+    }
 }
 
 # Update DFSR configs
