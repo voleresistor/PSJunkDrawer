@@ -142,7 +142,8 @@ foreach ($entry in $CsvFile)
     {
         # Share creation script block
         $newShare = {
-            if (!(Get-SmbShare -Name $args[0]))
+            $ShareCheck = Get-SmbShare -Name $args[0] -ErrorAction SilentlyContinue
+            if (!$ShareCheck)
             {
                 New-SmbShare -FullAccess Everyone -Name $args[0] -Path $args[1] -Description $args[2] -CachingMode BranchCache -FolderEnumerationMode AccessBased
                 return $true
