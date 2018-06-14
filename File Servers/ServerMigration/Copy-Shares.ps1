@@ -37,6 +37,6 @@ $CsvFile = Import-Csv -Path $InputCsv -Delimiter ','
 
 foreach ($entry in $CsvFile)
 {
-    $Destination = "\\" + $($entry.PrimaryServer) + "\" + $($entry.ShareName)
-    Start-Process -FilePath "$env:windir\System32\robocopy.exe" -ArgumentList "`"$($entry.SourcePath)`" `"$Destination`" /E /XO /COPY:DATSO /DCOPY:DAT /LOG+:`"$LogPath\$($entry.ShareName).log`"" -Wait -NoNewWindow
+    $Destination = "\\" + $($entry.PrimaryServer) + "\" + $($entry.ParentFolder) + "\" + $($entry.ShareName)
+    Start-Process -FilePath "$env:windir\System32\robocopy.exe" -ArgumentList "`"$($entry.SourcePath)`" `"$Destination`" /E /XO /R:5 /W:5 /COPY:DATSO /DCOPY:DAT /LOG+:`"$LogPath\$($entry.ShareName).log`"" -Wait -NoNewWindow
 }

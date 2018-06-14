@@ -1,11 +1,4 @@
-ShareName,SourcePath,PrimaryServer,ReplServer,PrimaryDrive,ReplDrive,ParentFolder,ShareDescription,DFSRGroupName,StageSize,DFSLocation
-CorpusChristie,\\10.128.18.248\departments\Corpus Christi,houdfs03.dxpe.com,omadfs01.dxpe.com,G,D,Departments,Corpus Christie department file share,Departments - CorpusChristie,4096,Data\Departments
-ConroeServiceCenter,\\10.128.18.248\departments\Conroe Service Center,houdfs03.dxpe.com,omadfs01.dxpe.com,G,D,Departments,Conroe Service Center department file share,Departments - ConroeServiceCenter,4096,Data\Departments
-SafetyCommittee,\\10.128.18.248\departments\Safety_Committee,houdfs03.dxpe.com,omadfs01.dxpe.com,G,D,Departments,Safety Committee  department file share,Departments - SafetyCommittee,4096,Data\Departments
-Odessa,\\10.128.18.248\departments\Odessa,houdfs03.dxpe.com,omadfs01.dxpe.com,G,D,Departments,Odessa  department file share,Departments - Odessa,4096,Data\Departments\Odessa
-ArlingtonRL,\\10.128.18.248\departments\Arlington RL,houdfs03.dxpe.com,omadfs01.dxpe.com,G,D,Departments,Arlington RL  department file share,Departments - ArlingtonRL,4096,Data\Departments
-Scranton,\\10.128.18.248\departments\Scranton,houdfs03.dxpe.com,omadfs01.dxpe.com,G,D,Departments,Scranton  department file share,Departments - Scranton,4096,Data\Departments
-IMPCustomerAgreements,\\10.128.18.248\departments\IMP Customer Agreements,houdfs03.dxpe.com,omadfs01.dxpe.com,G,D,Departments,IMP Customer Agreements department file share,Departments - IMPCustomerAgreements,4096,Data\Departments\IM&P
-OPSImports,\\10.128.18.248\departments\OPS_IMPORTS,houdfs03.dxpe.com,omadfs01.dxpe.com,G,D,Departments,OPS IMPORTS  department file share,Departments - OPSImports,4096,Data\Departments\Operations
-DRBCP,\\10.128.18.248\departments\DRBCP,houdfs03.dxpe.com,omadfs01.dxpe.com,G,D,Departments,DRBCP department file share,Departments - DRBCP,4096,Data\Departments\Reporting
-Springfield,\\10.128.18.248\departments\Springfield,houdfs03.dxpe.com,omadfs01.dxpe.com,G,D,Departments,Springfield departments file share,Departments - Springfield,4096,Data\Departments\Reporting
+ShareName,SourcePath,PrimaryServer,ReplServer,PrimaryDrive,ReplDrive,PrimaryFolder,ReplFolder,ShareDescription,DFSRGroupName,StageSize,DFSPath
+Inventory_Control,\\10.128.18.248\departments\Inventory_Control,houdfs02.dxpe.com,omadfs01.dxpe.com,E,E,Departments,Departments2,,Departments - Inventory_Control,16384,\\dxpe.com\data\Departments\IM&P\Inventory Control
+IMP,\\10.128.18.248\departments\IM&P,houdfs03.dxpe.com,omadfs01.dxpe.com,G,E,Departments,Departments2,,Departments - IMP,4096,\\dxpe.com\data\Departments\IM&P\IM&P
+OpsSupport,\\10.128.18.248\departments\Operations Support,houdfs03.dxpe.com,omadfs01.dxpe.com,E,E,Departments2,Departments2,,Departments - OpsSupport,32768,\\dxpe.com\data\Departments\Operations\Support

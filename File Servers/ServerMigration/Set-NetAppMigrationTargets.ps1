@@ -8,6 +8,9 @@ param
     [string]$Action,
 
     [Parameter(Mandatory=$false)]
+    [switch]$RootShare,
+
+    [Parameter(Mandatory=$false)]
     [string]$LogPath = "C:\temp\Copy-NetApp\Set-NetAppMigrationTargets.log"
 )
 
@@ -89,8 +92,16 @@ foreach ($entry in $CsvFile)
         if ($Action -eq 'Create')
         {
             # Define new targets
-            $PrimaryTarget = "\\" + $($entry.PrimaryServer) + "\" + $($entry.ShareName)
-            $ReplTarget = "\\" + $($entry.ReplServer) + "\" + $($entry.ShareName)
+            if ($RootShare)
+            {
+                $PrimaryTarget = "\\" + $($entry.PrimaryServer) + "\" + $($entry.PrimaryFolder) + "\" + $($entry.ShareName)
+                $ReplTarget = "\\" + $($entry.ReplServer) + "\" + $($entry.ReplFolder) + "\" + $($entry.ShareName)
+            }
+            else
+            {
+                $PrimaryTarget = "\\" + $($entry.PrimaryServer) + "\" + $($entry.ShareName)
+                $ReplTarget = "\\" + $($entry.ReplServer) + "\" + $($entry.ShareName)
+            }
         
             try
             {

@@ -48,8 +48,8 @@ foreach ($entry in $CsvFile)
     Write-Log -LogPath $LogPath -Component 'New-ReplicatedMigrationFolder' -File 'New-ReplicatedMigrationFolder.ps1' `
         -Message "Share: $($entry.ShareName)"
 
-    $PrimaryContentPath = $($entry.PrimaryDrive) + ":\" + $($entry.ParentFolder) + "\" + $($entry.ShareName)
-    $ReplContentPath = $($entry.ReplDrive) + ":\" + $($entry.ParentFolder) + "\" + $($entry.ShareName)
+    $PrimaryContentPath = $($entry.PrimaryDrive) + ":\" + $($entry.PrimaryFolder) + "\" + $($entry.ShareName)
+    $ReplContentPath = $($entry.ReplDrive) + ":\" + $($entry.ReplFolder) + "\" + $($entry.ShareName)
 
     Write-Log -LogPath $LogPath -Component 'New-ReplicatedMigrationFolder' -File 'New-ReplicatedMigrationFolder.ps1' `
         -Message "Primary content path: $PrimaryContentPath"

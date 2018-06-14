@@ -69,9 +69,9 @@ foreach ($entry in $CsvFile)
     }
 
     # Create primary and replication folders
-    $primaryPath = "\\" + $($entry.PrimaryServer) + "\" + $($entry.PrimaryDrive) + "$\" + $($entry.ParentFolder)
+    $primaryPath = "\\" + $($entry.PrimaryServer) + "\" + $($entry.PrimaryDrive) + "$\" + $($entry.PrimaryFolder)
     Write-Log -LogPath $LogPath -Component 'New-ShareFolders' -File 'New-ShareFolders.ps1' -Message "Primary Path: $primaryPath"
-    $replPath = "\\" + $($entry.ReplServer) + "\" + $($entry.ReplDrive) + "$\" + $($entry.ParentFolder)
+    $replPath = "\\" + $($entry.ReplServer) + "\" + $($entry.ReplDrive) + "$\" + $($entry.ReplFolder)
     Write-Log -LogPath $LogPath -Component 'New-ShareFolders' -File 'New-ShareFolders.ps1' -Message "Repl Path: $replPath"
 
     if (!(Test-Path "$primaryPath\$($entry.ShareName)"))
@@ -156,7 +156,7 @@ foreach ($entry in $CsvFile)
 
         # Create primary share
         Write-Log -LogPath $LogPath -Component 'New-ShareFolders' -File 'New-ShareFolders.ps1' -Message "Creating new share: \\$($entry.PrimaryServer)\$($entry.ShareName)"
-        $SharePath = $($entry.PrimaryDrive) + ":\" + $($entry.ParentFolder) + "\" + $($entry.ShareName)
+        $SharePath = $($entry.PrimaryDrive) + ":\" + $($entry.PrimaryFolder) + "\" + $($entry.ShareName)
         $result = Invoke-Command -ComputerName $($entry.PrimaryServer) -ScriptBlock $newShare -ArgumentList $($entry.ShareName),$SharePath,$($entry.ShareDescription)
         if ($result -eq $true)
         {
@@ -170,7 +170,7 @@ foreach ($entry in $CsvFile)
 
         # Create replication share
         Write-Log -LogPath $LogPath -Component 'New-ShareFolders' -File 'New-ShareFolders.ps1' -Message "Creating new share: \\$($entry.ReplServer)\$($entry.ShareName)"
-        $SharePath = $($entry.ReplDrive) + ":\" + $($entry.ParentFolder) + "\" + $($entry.ShareName)
+        $SharePath = $($entry.ReplDrive) + ":\" + $($entry.ReplFolder) + "\" + $($entry.ShareName)
         $result = Invoke-Command -ComputerName $($entry.ReplServer) -ScriptBlock $newShare -ArgumentList $($entry.ShareName),$SharePath,$($entry.ShareDescription)
         if ($result -eq $true)
         {
