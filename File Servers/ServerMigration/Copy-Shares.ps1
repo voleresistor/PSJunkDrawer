@@ -4,7 +4,10 @@ param
     [string]$InputCsv,
 
     [Parameter(Mandatory=$false)]
-    [string]$LogPath = "C:\temp\Copy-Netapp\RoboCopy"
+    [string]$LogPath = "C:\temp\Copy-Netapp\RoboCopy",
+
+    [Parameter(Mandatory=$false)]
+    [switch]$FinalCopy
 )
 
 <#
@@ -39,4 +42,10 @@ foreach ($entry in $CsvFile)
 {
     $Destination = "\\" + $($entry.PrimaryServer) + "\" + $($entry.PrimaryFolder) + "\" + $($entry.ShareName)
     Start-Process -FilePath "$env:windir\System32\robocopy.exe" -ArgumentList "`"$($entry.SourcePath)`" `"$Destination`" /E /XO /R:5 /W:5 /COPY:DATSO /DCOPY:DAT /LOG+:`"$LogPath\$($entry.ShareName).log`"" -Wait -NoNewWindow
+
+    # Run /MIR to clean up folder in case files were moved between copies
+    if ($FinalCopy)
+    {
+        Start-Process -FilePath "$env:windir\System32\robocopy.exe" -ArgumentList "`"$($entry.SourcePath)`" `"$Destination`" /MIR /R:5 /W:5 /LOG+:`"$LogPath\$($entry.ShareName)-MIR.log`"" -Wait -NoNewWindow
+    }
 }
