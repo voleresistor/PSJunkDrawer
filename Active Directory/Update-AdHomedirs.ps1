@@ -7,9 +7,6 @@ function Update-AdHomedirs
         [Parameter(Mandatory=$true, Position=1)]
         [string]$HomedirPrefix,
 
-        [Parameter(Mandatory=$true, Position=2)]
-        [string]$HomedirReplace,
-
         [Parameter(Mandatory=$true)]
         [string]$SurnameStart,
 
@@ -19,8 +16,14 @@ function Update-AdHomedirs
         [Parameter(Mandatory=$false)]
         [string]$Domain = 'dxpe.corp',
 
-        [Parameter(Mandatory=$false)]
-        [switch]$Update
+        [Parameter(Mandatory=$false, ParameterSetName='Update')]
+        [switch]$Update,
+
+        [Parameter(Mandatory=$false, ParameterSetName='Update')]
+        [string]$HomedirReplace,
+
+        [Parameter(Mandatory=$false, ParameterSetName='Update')]
+        [string[]]$BlackList
     )
     function Double-Backslash
     {
@@ -47,21 +50,28 @@ function Update-AdHomedirs
     {
         foreach ($u in $Users)
         {
-            $NewPath = $($u.HomeDirectory) -replace ($(Double-Backslash $HomedirPrefix), $HomedirReplace)
-
-            Write-Verbose "Changing user $($u.Name) home directory from $($u.HomeDirectory) to $NewPath"
-            try
+            if ($u.Name -notin $BlackList)
             {
-                Set-ADUser -Identity $u -HomeDirectory $NewPath #-WhatIf
-            }
-            catch
-            {
-                Write-Verbose "Failed to update user $($u.Name)"
-                return 1
-            }
-            Write-Verbose "Successfully modified user $($u.Name)'s home directory"
+                $NewPath = $($u.HomeDirectory) -replace ($(Double-Backslash $HomedirPrefix), $HomedirReplace)
 
-            Clear-Variable NewPath
+                Write-Verbose "Changing user $($u.Name) home directory from $($u.HomeDirectory) to $NewPath"
+                try
+                {
+                    Set-ADUser -Identity $u -HomeDirectory $NewPath #-WhatIf
+                }
+                catch
+                {
+                    Write-Verbose "Failed to update user $($u.Name)"
+                    return 1
+                }
+                Write-Verbose "Successfully modified user $($u.Name)'s home directory"
+
+                Clear-Variable NewPath
+            }
+            else
+            {
+                Write-Verbose "Skipping blacklisted user $($u.Name)"
+            }
         }
     }
     else
