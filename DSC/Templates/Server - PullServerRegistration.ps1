@@ -67,6 +67,7 @@ configuration RegisterDSCPullServer
 # $thumbprint = (New-SelfSignedCertificate -Subject "TestPullServer").Thumbprint
 # $registrationkey = [guid]::NewGuid()
 # RegisterDSCPullServer -certificateThumbPrint $thumbprint
+# Start-DscConfiguration -Path .\RegisterDSCPullServer -Wait -Verbose
 
 # =================================== Section Pull Server =================================== #
 
