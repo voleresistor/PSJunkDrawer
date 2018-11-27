@@ -30,7 +30,13 @@ param
 #>
 
 # Include useful functions
-. .\Include\UsefulFunctions.ps1
+function Get-ScriptDirectory
+{
+  $Invocation = (Get-Variable MyInvocation -Scope 1).Value
+  Split-Path $Invocation.MyCommand.Path
+}
+
+. "$(Get-ScriptDirectory)\Include\UsefulFunctions.ps1"
 
 # Initialize log
 Write-Log -LogPath $LogPath -Component 'New-ReplicatedMigrationFolder' -File 'New-ReplicatedMigrationFolder.ps1' `
