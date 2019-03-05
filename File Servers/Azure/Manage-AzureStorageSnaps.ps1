@@ -3,13 +3,15 @@
     [string]$LoginName,
     [string]$PassFile,
     [string]$StorageAccount,
+    [string]$Subscription,
+    [string]$ResourceGroupName,
     [string[]]$ExcludeAccounts = @(),
     [string]$FileShare, # Can take a wildcard
     [switch]$CleanOldSnaps,
     [switch]$CreateSnaps,
     [int]$SnapAge = 14,
-    [string]$LogLocation = "\\dxpe.com\dfsa\Logs\Azure\Snapshots\$env:ComputerName", # Folder only. Filename is automated
-    [string]$ResourceGroupName = 'TestStorageAccount',
+    [string]$LogRoot = "\\dxpe.com\dfsa\Logs\Azure\Snapshots",
+    [string]$LogLocation = "$LogRoot\$env:ComputerName", # Folder only. Filename is automated
     [string]$KeyPath = '\\dxpe.com\dfsa\Scripts\Azure\key.txt'
 )
 
@@ -105,22 +107,29 @@ begin
         return $MyDate
     }
 
+    if (!(Test-Path -Path $LogLocation))
+    {
+        New-Item -Path $LogRoot -ItemType Directory -Name $env:ComputerName -Force
+    }
     # Log initialization
     $LogPath = "$LogLocation\$((Get-DateTimeStamp).Date).log"
     Write-Log -LogPath $LogPath -Message ">>>>>>>>>> Begin managing snaps at $(Get-Date) <<<<<<<<<<"
 
     # Login to Azure
-    Write-Log -LogPath $LogPath -Message "Logging into AzureRM as $LoginName..."
+    Write-Log -LogPath $LogPath -Message "Logging into AzureRM -"
+    Write-Log -LogPath $LogPath -Message "`tLoginName: $LoginName"
+    Write-Log -LogPath $LogPath -Message "`tSubscription: $Subscription"
+    Write-Log -LogPath $LogPath -Message "`tResource Group: $ResourceGroupName"
     $AESKey = Get-content -Path $KeyPath
     $passwdText = Get-Content -Path $PassFile
     $securePass = $passwdText | ConvertTo-SecureString -Key $AESKey
     $SnapCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $LoginName,$securePass
 
-    $ctx = Login-AzureRmAccount -Credential $SnapCred
+    $ctx = Login-AzureRmAccount -Credential $SnapCred -Subscription $Subscription
 
     if ($ctx)
     {
-        Write-Log -LogPath $LogPath -Message "Logged into $($ctx.Name)"
+        Write-Log -LogPath $LogPath -Message "Login Succeeded!"
     }
     else
     {
@@ -220,7 +229,7 @@ end
     #Log out of AzureRM
     if ($ctx)
     {
-        Write-Log -LogPath $LogPath -Message "Logging out of $($ctx.Name)..."
+        Write-Log -LogPath $LogPath -Message "Logging out..."
         Logout-AzureRmAccount
     }
 

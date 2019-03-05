@@ -1,22 +1,52 @@
-﻿$matchString = "\\\\\.\\F:\\Departments2\\Accounting\\B27 \(Syteline Accounting Files\)\\Month End Syteline Documentation\\Subledgers\\11-18."
-$sourcePath = "F:\Departments2\Accounting\DfsrPrivate\ConflictAndDeleted"
-$destPath = "C:\temp\recover"
-
-foreach ($f in ($a.ConflictAndDeletedManifest.Resource))
+﻿function Recover-ConflictAndDeleted
 {
-    if ($f.Path -match $matchString)
-    {
-        $originalName = ($f.Path -split("\\"))[-1]
+    param
+    (
+        [Parameter(Mandatory=$true)]
+        [string]$MatchString,
 
-        if ($f.Path -like "*E-Dash Details*")
+        [Parameter(Mandatory=$true)]
+        [string]$ShareSource,
+
+        [Parameter(Mandatory=$false)]
+        [string]$RestorePath
+    )
+
+    # Load manifest from $SourcePath
+    [xml]$manifest = Get-Content -Path "$ShareSource\DfsrPrivate\ConflictAndDeletedManifest.xml"
+
+    # Operate on files that match the $MatchString regex
+    foreach ($f in ($manifest.ConflictAndDeletedManifest.Resource | Where-Object {$_.Path -match $MatchString}))
+    {
+        if ($RestorePath)
         {
-            Write-Host $($f.Path)
-            Copy-Item -Path "$sourcePath\$($f.NewName)" -Destination "$destPath\E-Dash Details\$originalName"
+            # Original name is hidden in the Path attribute of the file
+            $originalName = ($f.Path -split("\\"))[-1]
+
+            Write-Host "$($f.Path)`t-`t" -NoNewLine
+
+            try
+            {
+                Copy-Item -Path "$ShareSource\DfsrPrivate\ConflictAndDeleted\$($f.NewName)" -Destination "$RestorePath\$originalName"
+            }
+            catch
+            {
+                Write-Host "FAILED" -ForegroundColor 'Red'
+                Continue
+            }
+
+            Write-Host "RESTORED" -ForegroundColor 'Green'
         }
         else
         {
-            Write-Host $($f.Path)
-            Copy-Item -Path "$sourcePath\$($f.NewName)" -Destination "$destPath\$originalName"
+            # Just list potential restore candidates if $RestorePath wasn't specified
+            Write-Host "$($f.Path)"
         }
+    }
+
+    # Remind user of restore path
+    if ($RestorePath)
+    {
+        Write-Host "`r`nFiles were restored to: $RestorePath"
     }
 }
