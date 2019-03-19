@@ -212,7 +212,7 @@ function Install-SccmClient
         #Run the installer
         try
         {
-            $UninstallStr = "$RemotePath /uninstall"
+            $UninstallStr = "$RemotePath\$ClientInstaller /uninstall"
             $RemoteCommand = "Start-Process -FilePath `"$RemotePath\$ClientInstaller`" -ArgumentList '/uninstall'"
             Write-LogEntry -LogFile $LogFile -Value "Running command `"$UninstallStr`" on $ComputerName"
             Invoke-Command -Session $RemoteSession -ScriptBlock {Invoke-Expression -Command  $($args[0])} -ArgumentList $RemoteCommand

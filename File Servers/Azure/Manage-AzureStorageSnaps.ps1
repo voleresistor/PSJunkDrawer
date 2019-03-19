@@ -112,11 +112,11 @@ begin
         New-Item -Path $LogRoot -ItemType Directory -Name $env:ComputerName -Force
     }
     # Log initialization
-    $LogPath = "$LogLocation\$((Get-DateTimeStamp).Date).log"
+    $LogPath = "$LogLocation\$((Get-DateTimeStamp).Date)_${Subscription}_$StorageAccount.log"
     Write-Log -LogPath $LogPath -Message ">>>>>>>>>> Begin managing snaps at $(Get-Date) <<<<<<<<<<"
 
     # Login to Azure
-    Write-Log -LogPath $LogPath -Message "Logging into AzureRM -"
+    Write-Log -LogPath $LogPath -Message "Logging into AzureRM..."
     Write-Log -LogPath $LogPath -Message "`tLoginName: $LoginName"
     Write-Log -LogPath $LogPath -Message "`tSubscription: $Subscription"
     Write-Log -LogPath $LogPath -Message "`tResource Group: $ResourceGroupName"
@@ -175,43 +175,43 @@ process
             # Manage existing snaps
             if ($CleanOldSnaps)
             {
-            Write-Host "Begin cleaning up snaps for $($share.Name)"
-            Write-Log -LogPath $LogPath -Message "Begin cleaning up snaps for $($share.Name)"
+                Write-Host "Begin cleaning up snaps for $($share.Name)"
+                Write-Log -LogPath $LogPath -Message "Begin cleaning up snaps for $($share.Name)"
 
-            foreach ($snap in $DiscoveredSnaps)
-            {
-                # Ignore AzureBackup snaps
-                if ($snap.MetaData.Initiator -eq 'AzureBackup')
+                foreach ($snap in $DiscoveredSnaps)
                 {
-                    Write-Host "Skipping Azure Backup snap created on $($snap.Snapshottime.LocalDateTime) by AzureBackup for share $($snap.Name)"
-                    Write-Log -LogPath $LogPath -Message "Skipping Azure Backup snap created on $($snap.Snapshottime.LocalDateTime) by 'AzureBackup' for share $($snap.Name)"
-                    continue
-                }
+                    # Ignore AzureBackup snaps
+                    if ($snap.MetaData.Initiator -eq 'AzureBackup')
+                    {
+                        Write-Host "Skipping Azure Backup snap created on $($snap.Snapshottime.LocalDateTime) by AzureBackup for share $($snap.Name)"
+                        Write-Log -LogPath $LogPath -Message "Skipping Azure Backup snap created on $($snap.Snapshottime.LocalDateTime) by 'AzureBackup' for share $($snap.Name)"
+                        continue
+                    }
 
-                # Remove the auto generated backups.
-                # Need to figure out if these can be configured somewhere
-                if ($snap.MetaData.Initiator -eq 'AzureFilesync')
-                {
-                    Write-Host "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) by AzureFilesync for share $($snap.Name)"
-                    Write-Log -LogPath $LogPath -Message "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) by AzureFilesync for share $($snap.Name)"
-                    Remove-AzureStorageShare -Share $snap #-WhatIf
-                    continue
-                }
+                    # Remove the auto generated backups.
+                    # Need to figure out if these can be configured somewhere
+                    if ($snap.MetaData.Initiator -eq 'AzureFilesync')
+                    {
+                        Write-Host "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) by AzureFilesync for share $($snap.Name)"
+                        Write-Log -LogPath $LogPath -Message "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) by AzureFilesync for share $($snap.Name)"
+                        Remove-AzureStorageShare -Share $snap #-WhatIf
+                        continue
+                    }
 
-                # Remove snaps older than $SnapAge
-                if ($($snap.SnapshotTime.LocalDateTime) -lt $((Get-Date).AddDays(-$SnapAge)))
-                {
-                    Write-Host "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) for share $($snap.Name)"
-                    Write-Log -LogPath $LogPath -Message "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) for share $($snap.Name)"
-                    Remove-AzureStorageShare -Share $snap #-WhatIf
-                }
-                else
-                {
-                    Write-Host "Keeping snapshot created at $($snap.SnapshotTime.LocalDateTime) for share $($snap.Name)"
-                    Write-Log -LogPath $LogPath -Message "Keeping snapshot created at $($snap.SnapshotTime.LocalDateTime) for share $($snap.Name)"
+                    # Remove snaps older than $SnapAge
+                    if ($($snap.SnapshotTime.LocalDateTime) -lt $((Get-Date).AddDays(-$SnapAge)))
+                    {
+                        Write-Host "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) for share $($snap.Name)"
+                        Write-Log -LogPath $LogPath -Message "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) for share $($snap.Name)"
+                        Remove-AzureStorageShare -Share $snap #-WhatIf
+                    }
+                    else
+                    {
+                        Write-Host "Keeping snapshot created at $($snap.SnapshotTime.LocalDateTime) for share $($snap.Name)"
+                        Write-Log -LogPath $LogPath -Message "Keeping snapshot created at $($snap.SnapshotTime.LocalDateTime) for share $($snap.Name)"
+                    }
                 }
             }
-        }
 
             # Create snaps for each share
             if ($CreateSnaps)
