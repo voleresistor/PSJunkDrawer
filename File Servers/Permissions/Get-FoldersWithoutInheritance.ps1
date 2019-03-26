@@ -22,27 +22,19 @@ function Get-FoldersWithoutInheritance
         [switch]$Recurse
     )
 
-    # Storage array
-    $noInheritance = @()
-
-    # Select recursion
-    if ($Recurse)
-    {
-        $folderList = Get-ChildItem -Path $Path -Recurse -Directory
-    }
-    else
-    {
-        $folderList = Get-ChildItem -Path $Path -Directory
-    }
-
-    # Locate the non-inherited folders
-    foreach ($f in $folderList)
-    {
-        if (((Get-Acl -Path $($f.FullName)).Access.IsInherited) -notcontains 'True')
+    # Get directories in the given path
+    Get-ChildItem -Path $Path -Directory | Foreach-Object -Process {
+        # If recursive, run on each folder we discovered above
+        if ($Recurse)
         {
-            $noInheritance += $f.FullName
+            Get-FoldersWithoutInheritance -Path $_.FullName -Recurse
+        }
+
+        # This is the actual test for inheritance. If AreAccessRulesProtected is True,
+        # inheritance has been disabled
+        if ((Get-Acl -Path $($_.FullName)).AreAccessRulesProtected)
+        {
+            return $_.FullName
         }
     }
-
-    return $noInheritance
 }

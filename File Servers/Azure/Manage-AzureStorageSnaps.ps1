@@ -2,11 +2,8 @@
 (
     [string]$LoginName,
     [string]$PassFile,
-    [string]$StorageAccount,
     [string]$Subscription,
-    [string]$ResourceGroupName,
-    [string[]]$ExcludeAccounts = @(),
-    [string]$FileShare, # Can take a wildcard
+    [string]$AccountList,
     [switch]$CleanOldSnaps,
     [switch]$CreateSnaps,
     [int]$SnapAge = 14,
@@ -107,19 +104,22 @@ begin
         return $MyDate
     }
 
+    # Clean up sub names for some uses
+    $SubFriendly = $Subscription -replace ('\/','')
+
     if (!(Test-Path -Path $LogLocation))
     {
         New-Item -Path $LogRoot -ItemType Directory -Name $env:ComputerName -Force
     }
-    # Log initialization
-    $LogPath = "$LogLocation\$((Get-DateTimeStamp).Date)_${Subscription}_$StorageAccount.log"
+
+    # Log Azure login
+    $AdminLog = "$LogLocation\$((Get-DateTimeStamp).Date)_${SubFriendly}_Login.log"
     Write-Log -LogPath $LogPath -Message ">>>>>>>>>> Begin managing snaps at $(Get-Date) <<<<<<<<<<"
 
     # Login to Azure
-    Write-Log -LogPath $LogPath -Message "Logging into AzureRM..."
-    Write-Log -LogPath $LogPath -Message "`tLoginName: $LoginName"
-    Write-Log -LogPath $LogPath -Message "`tSubscription: $Subscription"
-    Write-Log -LogPath $LogPath -Message "`tResource Group: $ResourceGroupName"
+    Write-Log -LogPath $AdminLog -Message "Logging into AzureRM..."
+    Write-Log -LogPath $AdminLog -Message "`tLoginName: $LoginName"
+    Write-Log -LogPath $AdminLog -Message "`tSubscription: $Subscription"
     $AESKey = Get-content -Path $KeyPath
     $passwdText = Get-Content -Path $PassFile
     $securePass = $passwdText | ConvertTo-SecureString -Key $AESKey
@@ -129,62 +129,86 @@ begin
 
     if ($ctx)
     {
-        Write-Log -LogPath $LogPath -Message "Login Succeeded!"
+        Write-Log -LogPath $AdminLog -Message "Login Succeeded!"
     }
     else
     {
-        Write-Log -LogPath $LogPath -Message "Failed to log in using $LoginName"
+        Write-Log -LogPath $AdminLog -Message "Failed to log in using $LoginName"
         return 11
     }
 }
 process
 {
-    # Get specified storage account(s)
-    if ($StorageAccount)
+    # Get CSV file
+    Write-Log -LogPath $AdminLog -Message "Loading $AccountList..."
+    try
     {
-        $StorageAcct = Get-AzureRmStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccount
+        $targetAccounts = Import-Csv -Delimiter ',' -Path $AccountList
+    }
+    catch
+    {
+        $Exception = $_.Exception.Message
+        Write-Log -LogPath $AdminLog -Message "Failed - $Exception"
+    }
+    if ((Get-Member -InputObject $targetAccounts).TypeName -eq 'System.Management.Automation.PSCustomObject')
+    {
+        Write-Log -LogPath $AdminLog -Message "Found 1 entry."
     }
     else
     {
-        $StorageAcct = Get-AzureRmStorageAccount -ResourceGroupName $ResourceGroupName | Where-Object {$ExcludeAccounts -notcontains $_.StorageAccountName}
+        Write-Log -LogPath $AdminLog -Message "Found $($targetAccounts.Count) entries."
     }
 
-    # Take action on each storage account
-    foreach ($sa in $StorageAcct)
+    foreach ($e in $targetAccounts)
     {
-        Write-Host "Getting shares for Storage Account: $($sa.StorageAccountName)"
-        Write-Log -LogPath $LogPath -Message "Getting shares for Storage Account: $($sa.StorageAccountName)"
+        Write-Log -LogPath $AdminLog -Message "Managing storage account: $($e.StorageAccount)"
 
-        # Collect requested shares from current storage account
-        if ($FileShare)
+        # Create a new log file for each account
+        $entryLog = "$LogLocation\$((Get-DateTimeStamp).Date)_${SubFriendly}_$($e.StorageAccount).log"
+        Write-Log -LogPath $entryLog -Message ">>>>>>>>>> Begin managing $($e.StorageAccount) <<<<<<<<<<"
+
+        # Get the Storage Account
+        Write-Log -LogPath $entryLog -Message "Getting Storage Account: $($e.StorageAccount)"
+        try
         {
-            $FileShares = Get-AzureStorageShare -Context $sa.Context | Where-Object {($_.IsSnapshot -eq $false) -and ($_.Name -like $FileShare)}
+            $StorageAcct = Get-AzureRmStorageAccount -ResourceGroupName $($e.ResourceGroup) -Name $($e.StorageAccount)
         }
-        else
+        catch
         {
-            $FileShares = Get-AzureStorageShare -Context $sa.Context | Where-Object {$_.IsSnapshot -eq $false}
+            $Exception = $_.Exception.Message
+            Write-Log -LogPath $entryLog -Message "Failed - $Exception"
         }
 
-        # Gather all snapshots for a storage account
+        # Gather list of shares in current Storage Account
+        Write-Log -LogPath $entryLog -Message "Getting shares for Storage Account: $($e.StorageAccount)"
+        try
+        {
+            $FileShares = Get-AzureStorageShare -Context $StorageAcct.Context | Where-Object {$_.IsSnapshot -eq $false}
+        }
+        catch
+        {
+            $Exception = $_.Exception.Message
+            Write-Log -LogPath $entryLog -Message "Failed - $Exception"
+        }
+        Write-Log -LogPath $entryLog -Message "Found $($FileShares.Count) shares."
+
+        # Manage snaps for each share
         foreach ($share in $FileShares)
         {
-            $DiscoveredSnaps = Get-AzureStorageShare -Context $sa.Context | ?{($_.IsSnapshot -eq $true) -and ($_.Name -eq $share.Name)}
-            Write-Host "Found $($DiscoveredSnaps.Count) snaps for share: $($share.Name)"
-            Write-Log -LogPath $LogPath -Message "Found $($DiscoveredSnaps.Count) snaps for share: $($share.Name)"
+            $DiscoveredSnaps = Get-AzureStorageShare -Context $StorageAcct.Context | Where-Object {($_.IsSnapshot -eq $true) -and ($_.Name -eq $share.Name)}
+            Write-Log -LogPath $entryLog -Message "Found $($DiscoveredSnaps.Count) snaps for share: $($share.Name)"
 
             # Manage existing snaps
             if ($CleanOldSnaps)
             {
-                Write-Host "Begin cleaning up snaps for $($share.Name)"
-                Write-Log -LogPath $LogPath -Message "Begin cleaning up snaps for $($share.Name)"
+                Write-Log -LogPath $entryLog -Message "Begin cleaning up snaps for $($share.Name)"
 
                 foreach ($snap in $DiscoveredSnaps)
                 {
                     # Ignore AzureBackup snaps
                     if ($snap.MetaData.Initiator -eq 'AzureBackup')
                     {
-                        Write-Host "Skipping Azure Backup snap created on $($snap.Snapshottime.LocalDateTime) by AzureBackup for share $($snap.Name)"
-                        Write-Log -LogPath $LogPath -Message "Skipping Azure Backup snap created on $($snap.Snapshottime.LocalDateTime) by 'AzureBackup' for share $($snap.Name)"
+                        Write-Log -LogPath $entryLog -Message "Skipping Azure Backup snap created on $($snap.Snapshottime.LocalDateTime) by 'AzureBackup' for share $($snap.Name)"
                         continue
                     }
 
@@ -192,23 +216,38 @@ process
                     # Need to figure out if these can be configured somewhere
                     if ($snap.MetaData.Initiator -eq 'AzureFilesync')
                     {
-                        Write-Host "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) by AzureFilesync for share $($snap.Name)"
-                        Write-Log -LogPath $LogPath -Message "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) by AzureFilesync for share $($snap.Name)"
-                        Remove-AzureStorageShare -Share $snap #-WhatIf
+                        Write-Log -LogPath $entryLog -Message "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) by AzureFilesync for share $($snap.Name)"
+
+                        try
+                        {
+                            Remove-AzureStorageShare -Share $snap #-WhatIf
+                        }
+                        catch
+                        {
+                            $Exception = $_.Exception.Message
+                            Write-Log -LogPath $entryLog -Message "Failed - $Exception"
+                        }
                         continue
                     }
 
                     # Remove snaps older than $SnapAge
                     if ($($snap.SnapshotTime.LocalDateTime) -lt $((Get-Date).AddDays(-$SnapAge)))
                     {
-                        Write-Host "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) for share $($snap.Name)"
-                        Write-Log -LogPath $LogPath -Message "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) for share $($snap.Name)"
-                        Remove-AzureStorageShare -Share $snap #-WhatIf
+                        Write-Log -LogPath $entryLog -Message "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) for share $($snap.Name)"
+
+                        try
+                        {
+                            Remove-AzureStorageShare -Share $snap #-WhatIf
+                        }
+                        catch
+                        {
+                            $Exception = $_.Exception.Message
+                            Write-Log -LogPath $entryLog -Message "Failed - $Exception"
+                        }
                     }
                     else
                     {
-                        Write-Host "Keeping snapshot created at $($snap.SnapshotTime.LocalDateTime) for share $($snap.Name)"
-                        Write-Log -LogPath $LogPath -Message "Keeping snapshot created at $($snap.SnapshotTime.LocalDateTime) for share $($snap.Name)"
+                        Write-Log -LogPath $entryLog -Message "Keeping snapshot created at $($snap.SnapshotTime.LocalDateTime) for share $($snap.Name)"
                     }
                 }
             }
@@ -216,10 +255,22 @@ process
             # Create snaps for each share
             if ($CreateSnaps)
             {
-                $s = Get-AzureStorageShare -Context $sa.Context -Name $share.Name
-                $newSnap = $s.Snapshot()
-                Write-Host "Created snapshot for $($share.Name) at $($newSnap.SnapshotTime.LocalDateTime)"
-                Write-Log -LogPath $LogPath -Message "Created snapshot for $($share.Name) at $($newSnap.SnapshotTime.LocalDateTime)"
+                try
+                {
+                    $s = Get-AzureStorageShare -Context $StorageAcct.Context -Name $share.Name
+                    $newSnap = $s.Snapshot()
+                    Write-Log -LogPath $entryLog -Message "Created snapshot for $($share.Name) at $($newSnap.SnapshotTime.LocalDateTime)"
+                    Clear-Variable -Name newSnap
+                }
+                catch
+                {
+                    $Exception = $_.Exception.Message
+                    Write-Log -LogPath $entryLog -Message "Failed creating snap - $Exception"
+                }
+                finally
+                {
+                    Clear-Variable -Name s
+                }
             }
         }
     }
@@ -229,10 +280,10 @@ end
     #Log out of AzureRM
     if ($ctx)
     {
-        Write-Log -LogPath $LogPath -Message "Logging out..."
+        Write-Log -LogPath $AdminLog -Message "Logging out..."
         Logout-AzureRmAccount
     }
 
     # End log
-    Write-Log -LogPath $LogPath -Message "Done managing snaps at $(Get-Date)"
+    Write-Log -LogPath $AdminLog -Message "Done managing snaps at $(Get-Date)"
 }
