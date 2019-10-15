@@ -217,7 +217,6 @@ process
                     if ($snap.MetaData.Initiator -eq 'AzureFilesync')
                     {
                         Write-Log -LogPath $entryLog -Message "Removing snapshot created at $($snap.SnapshotTime.LocalDateTime) by AzureFilesync for share $($snap.Name)"
-
                         try
                         {
                             Remove-AzureStorageShare -Share $snap #-WhatIf
@@ -227,7 +226,9 @@ process
                             $Exception = $_.Exception.Message
                             Write-Log -LogPath $entryLog -Message "Failed - $Exception"
                         }
-                        continue
+
+                        #Write-Log -LogPath $entryLog -Message "Skipping AzureFilesync snap created on $($snap.Snapshottime.LocalDateTime) by 'AzureFileSync' for share $($snap.Name)"
+                        #continue
                     }
 
                     # Remove snaps older than $SnapAge

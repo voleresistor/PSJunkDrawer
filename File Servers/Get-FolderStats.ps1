@@ -1,15 +1,19 @@
+<#
+    Faster than rewrite Get-FolderStats - 11s vs 36s
+#>
 function Get-FolderStats
 {
     param
     (
-        [string]$Path
+        [string]$Path,
+        [switch]$RawSize
     )
 
     $size = 0
     $files = 0
     $folders = 0
 
-    Get-ChildItem -Path $Path -Recurse | foreach {
+    Get-ChildItem -Path $Path -Recurse | ForEach-Object {
         $size += $_.Length
         if ($_.PSIsContainer -eq $true)
         {
@@ -22,17 +26,24 @@ function Get-FolderStats
     }
 
     # Decide how granularly to report the total size
-    if ($size -lt 1048576)
+    if ($RawSize)
     {
-        $finalSize = "$('{0:N2}' -f ($size / 1kb)) kb"
-    }
-    elseif ($size -lt 1073741824)
-    {
-        $finalSize = "$('{0:N2}' -f ($size / 1mb)) mb"
+        $finalSize = $size
     }
     else
     {
-        $finalSize = "$('{0:N2}' -f ($size / 1gb)) gb"
+        if ($size -lt 1048576)
+        {
+            $finalSize = "$('{0:N2}' -f ($size / 1kb)) kb"
+        }
+        elseif ($size -lt 1073741824)
+        {
+            $finalSize = "$('{0:N2}' -f ($size / 1mb)) mb"
+        }
+        else
+        {
+            $finalSize = "$('{0:N2}' -f ($size / 1gb)) gb"
+        }
     }
 
     $results = New-Object -TypeName psobject
