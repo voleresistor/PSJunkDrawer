@@ -15,6 +15,14 @@
         [Parameter(Mandatory=$false)]
         [string]$PatchFolder = '\\dxpe.com\data\Departments\IT\SysOps\System Center\Architecture\SCCM\Patching'
     )
+
+    # Import ConfigMgr PSH Module
+    Import-Module $env:SMS_ADMIN_UI_PATH.Replace("\bin\i386","\bin\configurationmanager.psd1")
+    $MWBaseName = "SUP-"
+    
+    # Get the CMSITE SiteCode
+    $SiteCode = Get-PSDrive -PSProvider CMSITE
+    Set-Location "$($SiteCode.Name):\"
     
     <# Configure params for finding patch days
     $FindNthDay=2
@@ -68,15 +76,6 @@
     # For testing
     #return $PatchDays
     
-    # Import ConfigMgr PSH Module
-    Import-Module $env:SMS_ADMIN_UI_PATH.Replace("\bin\i386","\bin\configurationmanager.psd1")
-    $MWBaseName = "SUP-"
-        
-    # Get the CMSITE SiteCode
-    $SiteCode = Get-PSDrive -PSProvider CMSITE
-    $OldLoc = (Get-Location).Path
-    Set-Location "$($SiteCode.Name):\"
-
     # Parse patch days in array to create MWs
     foreach ($DateSet in $PatchDays){
         $MWName = $MWBaseName + $DateSet.PatchDay
@@ -111,8 +110,6 @@
     
         Write-Host ""
     }
-
-    Set-Location -Path $OldLoc
 }
 
     <#
