@@ -45,7 +45,7 @@ function Clear-CMCache
 
         # How big is the CM Cache?
         # We'll access the remote session a first time here to set up the COM object
-        # and gather some preliminay data. We're also saving the cache size into a
+        # and gather some preliminary data. We're also saving the cache size into a
         # local variable here for some reporting
         $SpaceSaved = Invoke-Command -Session $CacheSession -ScriptBlock {
             # Create CM object and gather cache info
