@@ -38,7 +38,7 @@ if ($computerList -and $computerName) {
 
 # Use WMI to invoke various CM client functions remotely via WMI
 forEach ($c in $ComputerName){
-    $smsClient = [wmiclass]"\\$c\root\ccm:SMS_Client"   
+    $smsClient = [wmiclass]"\\$c\root\ccm:SMS_Client"
     
     if ($Request){
         $smsClient.RequestMachinePolicy()
