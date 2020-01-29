@@ -43,11 +43,12 @@ function Get-AvailableSUP
             TODO:
             Verify this in MS docs
         #>
-        if ((Test-Netconnection -ComputerName $ComputerName -Port 5985).TcpTestSucceeded -eq $false)
-        {
-            throw "Can't open TCP connection to WSMan on remote computer $ComputerName"
+        #if ((Test-Netconnection -ComputerName $ComputerName -Port 5985).TcpTestSucceeded -eq $false)
+        #{
+        #    throw "Can't open TCP connection to WSMan on remote computer $ComputerName"
+            #continue
             #return $null
-        }
+        #}
 
         <#
             A simple hashtable of EvalState codes converted to human text for reporting purposes
