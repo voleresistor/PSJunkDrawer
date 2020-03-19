@@ -5,16 +5,6 @@ function Invoke-BitlockerEncryption {
 
     )
 
-    <# Ensure that we're connected to AD so the recovery keys can be stored.
-    try {
-        $SAM = $($env:username)
-        $null = Get-ADUser -Filter {SamAccountName -eq $SAM}
-    }
-    catch {
-        Write-Error "Can't access AD, recovery key can't be stored."
-        exit
-    } #>
-
     $Tpm = Get-Tpm
     
     # Only continue if there's a TPM and it's ready.
