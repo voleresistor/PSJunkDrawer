@@ -4,11 +4,6 @@ Description:
     A random assortment of PS scripts I have borrowed, modified, or created for managing SCCM and MDT
     functions. Also contains scripts and functions for DHCP, DNS, AD, DFS, OSD, and more.
 
-TODO:
-    - Need to further clean this up. Ideally convert each folder into a personal module of useful homebrewed functions
-    for ease of use.
-    - Many scripts need to be renamed, rewritten, or scrapped completely.
-
 Changes:
     11/20/2017
         Initial creation of this repository with all of its faults intact
