@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<baselines>
+    <configs>
+        <config>
+            <name></name>
+            <description></description>
+            <references>
+                <require></require>
+                <reference>
+                    <guid></guid>
+                    <negate></negate>
+                    <type></type>
+                </reference>
+            </references>
+        </config>
+    </configs>
+    <settings>
+        <registry>
+            <setting>
+                <guid></guid>
+                <existential></existential>
+                <hive></hive>
+                <key></key>
+                <name></name>
+                <value></value>
+                <valuetype></valuetype>
+                <dependencies></dependencies>
+            </setting>
+        </registry>
+    </settings>
+</baselines>

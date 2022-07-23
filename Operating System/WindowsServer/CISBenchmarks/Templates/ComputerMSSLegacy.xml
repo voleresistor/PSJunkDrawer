@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<baselines>
+    <configs>
+        <config>
+            <name>Limit IPv6 TCP Retranmission</name>
+            <description>Ensure 'MSS: (TcpMaxDataRetransmissions IPv6) How many times unackFalsewledged data is retransmitted' is set to 'Enabled: 3'</description>
+            <references>
+                <require>all</require>
+                <reference>
+                    <guid>9d624408-5cfe-4a53-9fff-3bc7f241d977</guid>
+                    <negate>False</negate>
+                    <type>registry</type>
+                </reference>
+            </references>
+        </config>
+        <config>
+            <name>Disable Automatic Logon</name>
+            <description>Ensure 'MSS: (AutoAdminLogon) Enable Automatic Logon (not recommended)' is set to 'Disabled'</description>
+            <references>
+                <require>all</require>
+                <reference>
+                    <guid>4d76e79e-3ddb-4116-b90c-05cb104b1cea</guid>
+                    <negate>True</negate>
+                    <type>registry</type>
+                </reference>
+                <reference>
+                    <guid>0f262fed-0cd0-46eb-b3de-0a826d596a00</guid>
+                    <negate>True</negate>
+                    <type>registry</type>
+                </reference>
+            </references>
+        </config>
+    </configs>
+    <settings>
+        <registry>
+            <setting>
+                <guid>9d624408-5cfe-4a53-9fff-3bc7f241d977</guid>
+                <existential>False</existential>
+                <hive>HKLM</hive>
+                <key>System\CurrentControlSet\Services\TCPIP6\Parameters</key>
+                <name>tcpmaxdataretransmissions</name>
+                <value>3</value>
+                <valuetype>dword</valuetype>
+                <dependencies></dependencies>
+            </setting>
+            <setting>
+                <guid>4d76e79e-3ddb-4116-b90c-05cb104b1cea</guid>
+                <existential>True</existential>
+                <hive>HKLM</hive>
+                <key>SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon</key>
+                <name>AutoAdminLogon</name>
+                <value></value>
+                <valuetype></valuetype>
+                <dependencies></dependencies>
+            </setting>
+            <setting>
+                <guid>0f262fed-0cd0-46eb-b3de-0a826d596a00</guid>
+                <existential>True</existential>
+                <hive>HKLM</hive>
+                <key>SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon</key>
+                <name>DefaultPassword</name>
+                <value></value>
+                <valuetype></valuetype>
+                <dependencies></dependencies>
+            </setting>
+        </registry>
+        <somethingelse>
+            <setting>
+                <property1></property1>
+                <property2></property2>
+            </setting>
+        </somethingelse>
+    </settings>
+</baselines>
