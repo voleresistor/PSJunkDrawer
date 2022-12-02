@@ -28,7 +28,8 @@ function Connect-MEMDrive {
     catch [System.Exception] {
         Write-Warning -Message “Unable to determine Site Code”
         break
-    } 
+    }
+    
     # Load assemblies 
     try { 
         Add-Type -Path (Join-Path -Path (Get-Item $env:SMS_ADMIN_UI_PATH).Parent.FullName -ChildPath “Microsoft.ConfigurationManagement.ApplicationManagement.dll”) -ErrorAction Stop
@@ -151,19 +152,44 @@ function Copy-NewImages {
         }
 
         # Create a new CMOSImage
+        $($f.Name) -match " [0-9]{5}\.[0-9]{1,4}$" | Out-Null
+        $strVers = $Matches[0].TrimStart()
+        $strName = ($($f.Name) -split ($strVers))[0]
+        $strDesc = "Updated $(get-date -UFormat "%B %Y")"
+
+        # Change to MEMCM path
         try {
             Set-Location -Path $($objMemPath.Path)
-            $($f.Name) -match " [0-9]{5}\.[0-9]{1,4}$" | Out-Null
-            $strVers = $Matches[0].TrimStart()
-            $strName = ($($f.Name) -split ($strVers))[0]
-            $strDesc = "Updated $(get-date -UFormat "%B %Y")"
+        }
+        catch {
+            Write-Error $_.Exception.Message
+            Write-Error "Unable to connect to MEMCM drive"
+            return
+        }
+
+        # Create OS Image
+        try {
             $objOSImage = New-CMOperatingSystemImage -Description $strDesc -Name $strName -Path "$strNewFolder\install.wim" -Version $strVers -Confirm:$false
-            Start-CMContentDistribution -OperatingSystemImage $objOSImage -DistributionPointGroupName 'On Prem'
+        }
+        catch {
+            Write-Error $_.Exception.Message
+            Write-Error "Unable to create new image"
+            return
+        }
+
+        # Make sure the OS Image object exists before continuing
+        while (!(Get-CMOperatingSystemImage -Id $($objOSImage.PackageID) -ErrorAction SilentlyContinue)) {
+            Start-Sleep -Seconds 1
+        }
+
+        # Distribute content
+        try {
+            Start-CMContentDistribution -OperatingSystemImageId $($objOSImage.PackageID) -DistributionPointGroupName 'On Prem'
             Set-Location -Path $($objOldPath.Path)
         }
         catch {
             Write-Error $_.Exception.Message
-            #Write-Error "Unable to create new image"
+            Write-Error "Unable to create new image for PackageID: $($objOSImage.PackageID)"
             return
         }
     }

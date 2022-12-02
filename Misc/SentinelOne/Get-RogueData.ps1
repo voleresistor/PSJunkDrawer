@@ -32,7 +32,7 @@ function Get-RogueData {
     # Create new CSV
     if ($CsvOut) {
         foreach ($e in $arrResults) {
-            Export-Csv -InputObject $e -Append -NoTypeInformation
+            Export-Csv -InputObject $e -Path $CsvOut -Append -NoTypeInformation
         }
     }
 

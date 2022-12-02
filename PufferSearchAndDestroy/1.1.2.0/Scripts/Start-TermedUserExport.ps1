@@ -103,6 +103,8 @@ function Start-TermedUserExport {
     $SearchResult = Start-ComplianceSearchWait -CaseName $($NewSearch.Name)
 
     # Start the export
+    Write-Verbose "${scriptName}: Waiting 30 seconds for search to fully complete..."
+    Start-Sleep -Seconds 30
     Write-Verbose "${scriptName}: Creating the export..."
     $NewExport = New-ComplianceSearchAction -SearchName $caseName -Export -ExchangeArchiveFormat 'PerUserPst' -RetryOnError
 
