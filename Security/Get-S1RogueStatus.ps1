@@ -9,7 +9,7 @@ function Get-S1RogueStatus {
 
     Foreach ($ip in $IPList) {
         Write-Progress -Activity "Checking rogues list..." -Status "$counter/$($IPList.Count)" -CurrentOperation $ip -PercentComplete (($counter / $($IPList.Count)) * 100)
-        $result = Test-Connection -IPv4 $ip -Count 1 -Quiet
+        $result = Test-Connection -ComputerName $ip -Count 1 -Quiet
         $dnsname = Resolve-DnsName $ip -ErrorAction SilentlyContinue
         $thisResult = @{
             'Address' = $ip

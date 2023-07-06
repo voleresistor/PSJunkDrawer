@@ -5,7 +5,7 @@ function Connect-PufferSearchAndDestroy {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateSet('Office', 'Nam04')]
+        [ValidateSet('Exchange', 'Compliance')]
         [string]$ConnectType,
 
         [Parameter(Mandatory=$False)]
@@ -53,19 +53,21 @@ function Connect-PufferSearchAndDestroy {
         }
     }
 
-    # Check the state of winRM
-    $winrmKeyPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client'
-    $winrmValueName = 'AllowBasic'
-    $winrmExpectedValue = 1
-    $winrmValue = (Get-ItemProperty -Path $winrmKeyPath -Name $winrmValueName | select -ExpandProperty $winrmValueName)
+    # Check the state of winRM if not using ExchangeOnline REST commands
+    if ($ConnectType -eq 'Compliance') {
+        $winrmKeyPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client'
+        $winrmValueName = 'AllowBasic'
+        $winrmExpectedValue = 1
+        $winrmValue = (Get-ItemProperty -Path $winrmKeyPath -Name $winrmValueName | select -ExpandProperty $winrmValueName)
 
-    if ($winrmValue -ne $winrmExpectedValue) {
-        try {
-            Set-ItemProperty -Path $winrmKeyPath -Name $winrmValueName -Value $winrmExpectedValue -ErrorAction Stop
-        }
-        catch {
-            Write-Error $_.Exception.Message
-            $result = $False
+        if ($winrmValue -ne $winrmExpectedValue) {
+            try {
+                Set-ItemProperty -Path $winrmKeyPath -Name $winrmValueName -Value $winrmExpectedValue -ErrorAction Stop
+            }
+            catch {
+                Write-Error $_.Exception.Message
+                $result = $False
+            }
         }
     }
 
@@ -76,18 +78,31 @@ function Connect-PufferSearchAndDestroy {
         $_.ComputerName -eq $ComputerName
     }
     if (-Not $CurrentState) {
-        Write-Verbose "${scriptName}: Not currently connected so attempt to connect."
+        Write-Verbose "${scriptName}: Not currently connected."
+        Write-Verbose "${scriptName}: Attempting connection to $ConnectType."
         #Connect-ExchangeOnline -ConnectionUri $ConnectionUri -CommandName $ImportCmd
-        try {
-            Connect-ExchangeOnline -ConnectionUri $ConnectionUri -Erroraction Stop
+        $Identity = "$($env:USERNAME)@$($env:USERDNSDOMAIN)"
+        if ($ConnectType -eq 'Exchange') {
+            try {
+                Connect-ExchangeOnline -UserPrincipalName $Identity -Erroraction Stop
+            }
+            catch {
+                Write-Error $_.Exception.Message
+                $result = $False
+            }
         }
-        catch {
-            Write-Error $_.Exception.Message
-            $result = $False
+        elseif ($ConnectType -eq 'Compliance') {
+            try {
+                Connect-IPPSSession -UserPrincipalName $Identity -Erroraction Stop
+            }
+            catch {
+                Write-Error $_.Exception.Message
+                $result = $False
+            }
         }
     }
     else {
-        Write-Verbose "${scriptName}: Already connected, nothing to do!"
+        Write-Verbose "${scriptName}: Nothing to do as we are already connected!"
     }
 
     return $result

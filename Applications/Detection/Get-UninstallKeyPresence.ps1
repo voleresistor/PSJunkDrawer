@@ -23,7 +23,7 @@ function Get-UninstallKeyPresence {
             Set-Location -Path $TargetPath -ErrorAction Stop
         }
         catch {
-            Write-Warning "$TargetPath inaccessible or doesn't exist."
+            #Write-Warning "$TargetPath inaccessible or doesn't exist."
             continue
         }
 
@@ -32,11 +32,11 @@ function Get-UninstallKeyPresence {
 		foreach ($key in $keys) {
 			if ((Get-ItemProperty $(($key) -split ('\\'))[-1]).DisplayName -match $SearchStr) {
 				if ($ReturnPath) {
-					Set-Location $($Start.Path)
+					Set-Location $($Start.Path) | Out-Null
                     return "$($key -replace ('HKEY_LOCAL_MACHINE', 'HKLM:'))"
                 }
                 else {
-					Set-Location $($Start.Path)
+					Set-Location $($Start.Path) | Out-Null
                     return $true
                 }
 			}
@@ -50,7 +50,7 @@ function Get-UninstallKeyPresence {
     # Mount HKEY_USERS
     $HKUMounted = $false
     try {
-        New-PSDrive -Name HKU -PSProvider Registry -Root HKEY_USERS
+        New-PSDrive -Name HKU -PSProvider Registry -Root HKEY_USERS | Out-Null
         $HKUMounted = $true
     }
     catch {

@@ -2,11 +2,14 @@ function Convert-MailboxToShared {
     [CmdletBinding(SupportsShouldProcess=$true)]
     param (
         [Parameter(Mandatory=$true)]
-        [Microsoft.ActiveDirectory.Management.ADUser]$UserAdObj
+        [Microsoft.ActiveDirectory.Management.ADUser]$UserAdObj,
+
+        [Parameter(Mandatory=$false)]
+        [switch]$KeepConnectionOpen
     )
 
     # Connect to Exchange 365 PowerShell
-    if ($null -ne (Connect-PufferSearchAndDestroy -ConnectType 'Office')) {
+    if ($null -ne (Connect-PufferSearchAndDestroy -ConnectType 'Exchange')) {
         Write-Error "Failed to connect to Office PowerShell!"
         return 1
     }
@@ -27,5 +30,7 @@ function Convert-MailboxToShared {
     }
 
     # Disconnect from Office PowerShell
-    Disconnect-PufferSearchAndDestroy
+    if (-not $KeepConnectionOpen) {
+        Disconnect-PufferSearchAndDestroy
+    }
 }

@@ -8,7 +8,7 @@ function Start-TermedUserExport {
         [string]$CaseNumber,
 
         [Parameter(Mandatory=$false, Position=3)]
-        [string]$DelegateTo,
+        [string[]]$DelegateTo,
 
         [Parameter(Mandatory=$false, Position=4)]
         [string]$MailTo,
@@ -23,34 +23,39 @@ function Start-TermedUserExport {
     $userAdObj = Get-AdUser -Identity $samAccountName -Properties mail,employeeType -ErrorAction SilentlyContinue
 
     if ($DelegateTo) {
-        $delegateToObj = Get-AdUser -Identity $DelegateTo -Properties mail,employeeType -ErrorAction SilentlyContinue
+        $delegateToObj = @()
+        foreach ($o in $DelegateTo) {
+            $delegateToObj += Get-AdUser -Identity $o -Properties mail,employeeType -ErrorAction SilentlyContinue
+        }
     }
 
-    
+    if ($MailTo) {
+        $mailToObj = Get-AdUser -Identity $MailTo -Properties mail,employeeType -ErrorAction SilentlyContinue
+    }
 
     # convert mailbox to shared type
-    if ($null -ne (Convert-MailboxToShared -UserAdObj $userAdObj)) {
+    if ($null -ne (Convert-MailboxToShared -UserAdObj $userAdObj -KeepConnectionOpen)) {
         Write-Error "Failed to convert mailbox to shared."
     }
 
+    # Add delegations
+    if ($delegateToObj) {
+        foreach ($dObj in $delegateToObj) {
+            if ($null -ne (Set-TermedUserDelegation -UserAdObj $userAdObj -DelegateTo $dObj -KeepConnectionOpen)) {
+                Write-Error "Failed to delegate to $($dObj.UserPrincipalName)."
+            }
+        }
+    }
+
     # Set OOO message
-    if ($MailTo) {
-        $mailToObj = Get-AdUser -Identity $MailTo -Properties mail,employeeType -ErrorAction SilentlyContinue
+    if ($mailToObj) {
         if ($null -ne (Set-TermedUserOOO -UserAdObj $userAdObj -MailTo $mailToObj)) {
             Write-Error "Failed to set out of office message."
         }
     }
 
-    # Add delegations
-    if ($DelegateTo) {
-        $delegateToObj = Get-AdUser -Identity $DelegateTo -Properties mail,employeeType -ErrorAction SilentlyContinue
-        if ($null -ne (Set-TermedUserDelegation -UserAdObj $userAdObj -DelegateTo $mailToObj)) {
-            Write-Error "Failed to set out of office message."
-        }
-    }
-
     # Connect to Compliance and Security PowerShell
-    if ($null -ne (Connect-PufferSearchAndDestroy -ConnectType 'Nam04')) {
+    if ($null -ne (Connect-PufferSearchAndDestroy -ConnectType 'Compliance')) {
         Write-Error "Failed to connect to Compliance and Security PowerShell!"
         return 1
     }

@@ -5,14 +5,17 @@ function Set-TermedUserOOO {
         [Microsoft.ActiveDirectory.Management.ADUser]$UserAdObj,
 
         [Parameter(Mandatory=$true)]
-        [Microsoft.ActiveDirectory.Management.ADUser]$MailTo
+        [Microsoft.ActiveDirectory.Management.ADUser]$MailTo,
+
+        [Parameter(Mandatory=$false)]
+        [switch]$KeepConnectionOpen
     )
 
     # Build new OOO message from variables
     $strNewMessage = "$($UserAdObj.GivenName) $($UserAdObj.Surname) is no longer with Puffer. Please contact $($MailTo.GivenName) $($MailTo.Surname) at $($MailTo.mail)."
 
     # Connect to Exchange 365 PowerShell
-    if ($null -ne (Connect-PufferSearchAndDestroy -ConnectType 'Office')) {
+    if ($null -ne (Connect-PufferSearchAndDestroy -ConnectType 'Exchange')) {
         Write-Error "Failed to connect to Office PowerShell!"
         return 1
     }
@@ -33,5 +36,7 @@ function Set-TermedUserOOO {
     }
 
     # Disconnect from Office PowerShell
-    Disconnect-PufferSearchAndDestroy
+    if (-not $KeepConnectionOpen) {
+        Disconnect-PufferSearchAndDestroy
+    }
 }
